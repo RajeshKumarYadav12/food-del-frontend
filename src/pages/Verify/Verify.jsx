@@ -1,42 +1,57 @@
 import React, { useEffect } from "react";
 import "./Verify.css";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContext.jsx";
 import { useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Verify = () => {
-  
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const success = searchParams.get("success");
-
-  const orderId = searchParams.get("orderId");
-
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { url } = useContext(StoreContext);
 
-  const navigate = useNavigate();
+  const success = searchParams.get("success");
+  const orderId = searchParams.get("orderId");
 
   const verifyPayment = async () => {
-    const response = await axios.post(url + "/api/order/verify", {
-      success,
-      orderId,
-    });
-    if (response.data.success) {
-      navigate("/myorders");
-    } else {
+    if (!success || !orderId) {
+      console.error("🚨 Missing success or orderId in URL.");
+      navigate("/"); // Redirect to home if missing
+      return;
+    }
+
+    try {
+      const response = await axios.post(url + "/api/order/verify", {
+        success,
+        orderId,
+      });
+
+      if (response.data.success) {
+        console.log("✅ Payment verified. Redirecting to /myorders...");
+        navigate("/myorders");
+      } else {
+        console.error("❌ Payment verification failed:", response.data);
+        navigate("/");
+      }
+    } catch (error) {
+      console.error(
+        "🚨 Error verifying payment:",
+        error.response?.data || error.message
+      );
       navigate("/");
     }
   };
 
   useEffect(() => {
-    verifyPayment();
-  }, []);
+    if (success !== null && orderId !== null) {
+      verifyPayment();
+    }
+  }, [success, orderId]);
 
   return (
     <div className="verify">
       <div className="spinner"></div>
+      <h3>Verifying payment...</h3>
     </div>
   );
 };
