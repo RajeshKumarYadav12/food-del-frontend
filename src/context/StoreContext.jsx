@@ -5,8 +5,7 @@ export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
   const [cartItems, setCartItems] = useState({});
-  const url =
-    "https://food-del-backend-1-5imf.onrender.com/" || "http://localhost:4001";
+  const url = import.meta.env.VITE_BACKEND_URL;
 
   const [token, setToken] = useState("");
   const [food_list, setFoodList] = useState([]);
